@@ -1,3 +1,9 @@
+# REALLY REALLY IMPORTANT NOTE #
+
+Forrst has removed their API.  Until such time as they replace it, this module is useless.
+
+Sorry.
+
 # RainForrst
 
 RainForrst is a quick little file to access the [Forrst API](http://forrst.com/apidocs.html).
