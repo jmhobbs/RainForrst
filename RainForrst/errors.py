@@ -11,6 +11,10 @@ class ForrstError ( Exception ):
 	def __repr__ ( self ):
 		return '<ForrstError( %d, "%s" )>' % ( self.apiversion, self.message )
 
+class InvalidVersionError ( ForrstError ):
+	def __init__ ( self, apiversion ):
+		ForrstError.__init__( self, apiversion, 'Version %d is not a valid API version.' % apiversion )
+
 class InvalidObjectError ( ForrstError ):
 	def __init__ ( self, apiversion, object_type ):
 		ForrstError.__init__( self, apiversion, 'The object type "%s" is not valid in API version %d.' % ( object_type, apiversion ) )

@@ -15,11 +15,11 @@ class TestUsers ( unittest.TestCase ):
 	def __init__ ( self, *args ):
 		unittest.TestCase.__init__( self, *args )
 
-		self.forrst = RainForrst.Forrst( 1 )
+		self.forrst = RainForrst.Forrst( 2 )
 
 	def test_get_user_by_id ( self ):
-		user = self.forrst.user.info( username='kyle' )
-		self.assertEquals( user.id, '1' )
+		user = self.forrst.user.info( username='jmhobbs' )
+		self.assertEquals( user.id, 3199 )
 
 	@raises( RainForrst.errors.ForrstNotFound )
 	def test_get_user_by_invalid_id ( self ):

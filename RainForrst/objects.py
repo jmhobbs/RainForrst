@@ -19,6 +19,7 @@ class ForrstObject ( object ):
 	_name = ''
 
 	def __init__ ( self, apiversion, **kwargs ):
+		
 		self._version = apiversion
 		self._method = ''
 		self._loaded = False
@@ -28,18 +29,26 @@ class ForrstObject ( object ):
 			self._loaded = True
 
 	def __getattr__ ( self, name ):
-		if name in self._methods[self._version]:
-			self._method = name
-			return self
-		else:
-			return None
+		try:
+			if name in self._methods[self._version]:
+				self._method = name
+				return self
+		except:
+			pass
+
+		return None
 
 	def __call__ ( self, **kwargs ):
-		if self._method not in self._methods[self._version]:
+		if self._method not in self._methods[self._version].keys():
 			raise InvalidMethodError( self._version, self._name, self._method )
 
 		data = urllib.urlencode( kwargs )
-		url = 'http://api.forrst.com/api/v%d/%s/%s?%s' % ( self._version, self._name, self._method, data )
+		
+		endpoint = 'http://api.forrst.com'
+		if self._version > 1:
+			endpoint = 'http://forrst.com'
+
+		url = '%s/api/v%d/%s/%s?%s' % ( endpoint, self._version, self._methods[self._version][self._method], self._method, data )
 
 		try:
 			req = urllib2.Request( url )
@@ -62,13 +71,17 @@ class ForrstObject ( object ):
 
 class User ( ForrstObject ):
 	_methods = {
-		1: [ 'info', 'posts' ]
+		1: { 'info': 'users', 'posts': 'users' },
+		2: { 'auth': 'users', 'info': 'users', 'posts': 'user' }
 	}
 	_name = 'users'
 
 	def _parse ( self, method, data ):
 		if 'info' == method:
-			return User( self._version, **data['user'] )
+			if 1 == self._version:
+				return User( self._version, **data['user'] )
+			else:
+				return User( self._version, **data )
 		elif 'posts' == method:
 			posts = []
 			for post in data['posts']:
@@ -97,7 +110,32 @@ class User ( ForrstObject ):
 		return ForrstObject.__call__( self, **kwargs )
 
 class Post ( ForrstObject ):
+	_methods = {
+		1: {},
+		2: { 'show': 'posts', 'all': 'posts', 'list': 'posts', 'comments': 'post' }
+	}
 	_name = 'post'
+
+	def _parse ( self, method, data ):
+		if 'show' == method:
+			return Post( self._version, **data )
+		elif 'comments' == method:
+			comments = []
+			for comment in data['comments']:
+				comments.append( Comment( self._version, **comment ) )
+			return comments
+
+	def __call__ ( self, **kwargs ):
+		# Intercept argument-less calls and add arguments if needed
+		postid = getattr( self, 'id', None )
+		tinyid = getattr( self, 'tiny_id', None )
+		if postid or tinyid:
+			if 'id' not in kwargs and 'tiny_id' not in kwargs:
+				if postid:
+					kwargs['id'] = postid
+				elif userid:
+					kwargs['tiny_id'] = tinyid
+		return ForrstObject.__call__( self, **kwargs )
 
 class Snap ( Post ):
 	_name = 'snap'
@@ -110,3 +148,7 @@ class Code ( Post ):
 
 class Question ( Post ):
 	_name = 'question'
+
+class Comment ( ForrstObject ):
+	_name = 'comment'
+
